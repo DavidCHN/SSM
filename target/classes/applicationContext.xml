@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<context:component-scan base-package="com.bkvito">
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+
+	<context:property-placeholder location="classpath:db.properties" />
+
+
+	   <bean id="pooledDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">  	
+		<!-- oracle -->
+		<property name="driverClassName" value="${driverClass}"/>
+        <property name="url" value="${jdbcUrl}" />
+ 		<property name="username" value="scott" />
+		<property name="password" value="${password}" />
+		 
+		<!-- Connection Pooling Info -->
+		<property name="initialSize" value="5" />
+		<property name="maxActive" value="10" />
+		<property name="maxIdle" value="5" />
+		<property name="minIdle" value="5" />
+		<property name="maxWait" value="10000" />
+		<property name="removeAbandoned" value="false"></property>
+		<property name="removeAbandonedTimeout" value="30000"></property>
+		
+		<property name="poolPreparedStatements" value="true" />
+		<property name="defaultAutoCommit" value="false" />
+    </bean>
+		
+		 
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:mybatis-conf.xml"></property>
+		<property name="dataSource" ref="pooledDataSource"></property>
+		<property name="mapperLocations" value="classpath:mapper/*.xml"></property>
+	</bean>
+
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.bkvito.crud.dao"></property>
+	</bean>
+
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"></constructor-arg>
+		<constructor-arg name="executorType" value="BATCH"></constructor-arg>
+	</bean>
+
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="pooledDataSource"></property>
+	</bean>
+
+	<aop:config>
+		<aop:pointcut expression="execution(* com.bkvito.crud.service..*(..))"
+			id="pointCut" />
+
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="pointCut" />
+	</aop:config>
+
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*" />
+			<tx:method name="get*" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+</beans>
