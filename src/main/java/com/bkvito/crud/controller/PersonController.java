@@ -40,6 +40,20 @@ public class PersonController {
 
 		return Msg.success().add("pageInfo", pageInfo);
 	}
+	
+	@RequestMapping("/checkuser")
+	@ResponseBody
+	public Msg checkUser(@RequestParam("personName")String personName){
+		
+		boolean b=personService.checkUser(personName);
+		if(b){
+			return Msg.success();
+		}else {
+			return Msg.fail();
+		}
+	
+		
+	}
 
 	// @RequestMapping("/persons")
 	public String getPerson(@RequestParam(value = "pn", defaultValue = "1") Integer pn, Model model) {

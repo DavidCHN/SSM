@@ -37,6 +37,7 @@
 							<div class="col-sm-8">
 								<input type="text" name="name" class="form-control" id="personName"
 									placeholder="张三">
+									 <span class="help-block"></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -44,6 +45,7 @@
 							<div class="col-sm-8">
 								<input type="text" name="age" class="form-control" id="age"
 									placeholder="18">
+									 <span class="help-block"></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -51,6 +53,7 @@
 							<div class="col-sm-8">
 								<input type="text" name="address" class="form-control" id="address"
 									placeholder="兰州市七里河区XX路XX小区XX室">
+									 <span class="help-block"></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -58,6 +61,7 @@
 							<div class="col-sm-8">
 								<input type="email" name="email" class="form-control" id="email"
 									placeholder="8888888@qq.com">
+									 <span class="help-block"></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -243,12 +247,14 @@
 		}
 
 		$("#addModal").click(function() {
+			$("#empAddModal form")[0].reset();
 			get_Department();
 			$("#empAddModal").modal({
 				backdrop : "static"
 			});
 		});
 		function get_Department(){
+			$("#empAddModal select").empty();
 			$.ajax({
 				url:"${APP_PATH}/depts",
 				type:"get",
@@ -260,7 +266,68 @@
 			})
 		}
 		
+		function validate_add_form(){
+			var nameVal=$("#personName").val();
+			var regName = /(^[a-zA-Z0-9_-]{6,16}$)|(^[\u2E80-\u9FFF]{2,5})/;
+			if(!regName.test(nameVal)){
+				show_validate_msg("#personName", "error", "用户名可以是2-5位中文或者6-16位英文和数字的组合");
+				return false;
+			}else{
+				show_validate_msg("#personName", "success", "");
+			}
+			var email = $("#email").val();
+			var regEmail = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
+			if(!regEmail.test(email)){		
+				show_validate_msg("#email", "error", "邮箱格式不正确");
+			
+				return false;
+			}else{
+				show_validate_msg("#email", "success", "");
+			}
+			return true;
+		}
+		
+		$("#personName").change(function(){
+			var nameVal=this.value;
+			$.ajax({
+				url:"${APP_PATH}/checkuser",
+				data:"personName="+nameVal,
+				type:"POST",
+				success:function(result){
+					if(result.code==100){
+						show_validate_msg("#personName","success","用户名可用");
+						$("#save_person").attr("ajax_va","success");
+					}else{
+						show_validate_msg("#personName","error","用户名不可用");
+						$("#save_person").attr("ajax_va","error");
+					}
+				}
+			});
+		});
+		
+		//显示校验结果的提示信息
+		function show_validate_msg(ele,status,msg){
+			//清除当前元素的校验状态
+			$(ele).parent().removeClass("has-success has-error");
+			$(ele).next("span").text("");
+			if("success"==status){
+				$(ele).parent().addClass("has-success");
+				$(ele).next("span").text(msg);
+			}else if("error" == status){
+				$(ele).parent().addClass("has-error");
+				$(ele).next("span").text(msg);
+			}
+		}
+		
 		$("#save_person").click(function(){
+			
+			if(!validate_add_form()){
+				return false;
+			};
+			if($(this).attr("ajax_va")=="error"){
+				return false;
+			}
+			
 			$.ajax({
 				url:"${APP_PATH}/persons",
 				type:"post",
