@@ -1,10 +1,16 @@
 package com.bkvito.crud.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,9 +30,20 @@ public class PersonController {
 	
 	@RequestMapping(value="/persons",method=RequestMethod.POST)
 	@ResponseBody
-	public Msg savePersons(Person person){
-		personService.savePersons(person);
-		return Msg.success();
+	public Msg savePersons(@Valid Person person,BindingResult result){
+		
+		if(result.hasErrors()){
+			Map<String, Object> map=new HashMap<>();
+			List<FieldError> errors= result.getFieldErrors();
+			for(FieldError error:errors){
+				map.put(error.getField(), error.getDefaultMessage());
+			}
+			return Msg.fail().add("errorField", map);
+		}else{
+			personService.savePersons(person);
+			return Msg.success();
+		}
+		
 	}
 	
 	@RequestMapping("/persons")
@@ -45,11 +62,15 @@ public class PersonController {
 	@ResponseBody
 	public Msg checkUser(@RequestParam("personName")String personName){
 		
+		String regex="(^[a-zA-Z0-9_-]{6,16}$)|(^[\u2E80-\u9FFF]{2,5})";
+		if(!personName.matches(regex)){
+			return Msg.fail().add("va_msg", "用户名必须是6-16位英文数字组合或2-5位中文");
+		}
 		boolean b=personService.checkUser(personName);
 		if(b){
 			return Msg.success();
 		}else {
-			return Msg.fail();
+			return Msg.fail().add("va_msg", "用户名已使用，请重新输入");
 		}
 	
 		

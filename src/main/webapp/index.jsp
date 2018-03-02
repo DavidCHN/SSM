@@ -245,9 +245,16 @@
 			var navEle = $("<nav></nav>").append(ulLi).appendTo(
 					"#page_nav_area");
 		}
+		
+		function reset_form(ele){
+			$(ele)[0].reset();
+			$(ele).find("*").removeClass("has-error has-success");
+			$(ele).find(".help-block").text("");			
+		}
 
 		$("#addModal").click(function() {
-			$("#empAddModal form")[0].reset();
+			reset_form("#empAddModal form");
+			//$("#empAddModal form")[0].reset();
 			get_Department();
 			$("#empAddModal").modal({
 				backdrop : "static"
@@ -294,11 +301,12 @@
 				data:"personName="+nameVal,
 				type:"POST",
 				success:function(result){
+					console.log(result);
 					if(result.code==100){
 						show_validate_msg("#personName","success","用户名可用");
 						$("#save_person").attr("ajax_va","success");
 					}else{
-						show_validate_msg("#personName","error","用户名不可用");
+						show_validate_msg("#personName","error",result.extend.va_msg);
 						$("#save_person").attr("ajax_va","error");
 					}
 				}
@@ -323,7 +331,7 @@
 			
 			if(!validate_add_form()){
 				return false;
-			};
+			}; 
 			if($(this).attr("ajax_va")=="error"){
 				return false;
 			}
@@ -333,8 +341,19 @@
 				type:"post",
 				data:$("#empAddModal form").serialize(),
 				success:function(result){
-					$("#empAddModal").modal("hide");
-					to_page(totalRecode);
+					if(result.code==100){
+						$("#empAddModal").modal("hide");
+						to_page(totalRecode);
+					}else{
+						if(undefined!=result.extend.errorField.email){
+							show_validate_msg("#email", "error", result.extend.errorField.email);
+						}
+						if(undefined!=result.extend.errorField.age){
+							show_validate_msg("#age", "error", result.extend.errorField.age);
+						}
+						
+					}
+					
 				}
 			});
 		});

@@ -1,12 +1,18 @@
 package com.bkvito.crud.bean;
 
+import javax.validation.constraints.Pattern;
+import org.hibernate.validator.constraints.Range;
+
 public class Person {
     private Integer id;
 
+    @Pattern(regexp="(^[a-zA-Z0-9_-]{6,16}$)|(^[\u2E80-\u9FFF]{2,5})",message="用户名必须是6-16位字母数字组合或2-5位中文")
     private String name;
 
+    @Range(min=1,max=120,message="年龄在1到120岁之间")
     private Integer age;
 
+    @Pattern(regexp="^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,6})$",message="邮箱格式不正确")
     private String email;
 
     private String address;
