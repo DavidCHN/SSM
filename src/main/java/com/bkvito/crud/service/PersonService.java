@@ -33,4 +33,14 @@ public class PersonService {
 		return count==0;
 	}
 
+	public void updateEmp(Person person) {
+		personMapper.updateByPrimaryKeySelective(person);
+		
+	}
+
+	public Person getEmp(Integer id) {
+		Person person=personMapper.selectByPrimaryKey(id);
+		return person;
+	}
+
 }

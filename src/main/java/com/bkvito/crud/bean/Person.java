@@ -115,4 +115,11 @@ public class Person {
     public void setJobId(Integer jobId) {
         this.jobId = jobId;
     }
+
+	@Override
+	public String toString() {
+		return "Person [id=" + id + ", name=" + name + ", age=" + age + ", email=" + email + ", address=" + address
+				+ ", gender=" + gender + ", marry=" + marry + ", jobId=" + jobId + ", department=" + department + "]";
+	}
+    
 }

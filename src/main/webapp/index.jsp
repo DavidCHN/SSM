@@ -19,6 +19,77 @@
 </head>
 <body>
 	<!-- Modal -->
+	<div class="modal fade" id="empUpdateModal" tabindex="-1" role="dialog"
+		aria-labelledby="myModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="myModalLabel">更新用户</h4>
+				</div>
+				<div class="modal-body">
+					<form class="form-horizontal">
+						  <div class="form-group">
+						    <label class="col-sm-2 control-label">用户名</label>
+						    <div class="col-sm-10">
+						      	<p class="form-control-static" id="empName_update_static"></p>
+						    </div>
+						  </div>
+						<div class="form-group">
+							<label for="inputPassword3" class="col-sm-2 control-label">年龄</label>
+							<div class="col-sm-8">
+								<input type="text" name="age" class="form-control" id="age_update_input"
+									placeholder="18">
+									 <span class="help-block"></span>
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="inputPassword3" class="col-sm-2 control-label">住址</label>
+							<div class="col-sm-8">
+								<input type="text" name="address" class="form-control" id="address_update_input"
+									placeholder="兰州市七里河区XX路XX小区XX室">
+									 <span class="help-block"></span>
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="inputPassword3" class="col-sm-2 control-label">邮箱</label>
+							<div class="col-sm-8">
+								<input type="email" name="email" class="form-control" id="email_update_input"
+									placeholder="8888888@qq.com">
+									 <span class="help-block"></span>
+							</div>
+						</div>
+						<div class="form-group">
+						    <label class="col-sm-2 control-label">性别</label>
+						    <div class="col-sm-10">
+						      <label class="radio-inline">
+								  <input type="radio" name="gender" id="gender1_update_input" value="M" checked="checked"> 男
+								</label>
+								<label class="radio-inline">
+								  <input type="radio" name="gender" id="gender2_update_input" value="F"> 女
+								</label>
+						    </div>
+						  </div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">所属部门</label>
+							<div class="col-sm-6">
+								<select class="form-control" name="jobId">
+								</select>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+					<button type="button" class="btn btn-primary" id="emp_update_btn">更新</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal -->
 	<div class="modal fade" id="empAddModal" tabindex="-1" role="dialog"
 		aria-labelledby="myModalLabel">
 		<div class="modal-dialog" role="document">
@@ -133,7 +204,7 @@
 		</div>
 	</div>
 	<script type="text/javascript">
-		var totalRecode;
+		var totalRecode,currentPage;
 		$(function() {
 			to_page(1);
 		});
@@ -144,7 +215,6 @@
 				data : "pn=" + pn,
 				type : "get",
 				success : function(result) {
-					console.log(result);
 					build_emp_table(result);
 					build_pageInfo(result);
 					build_nav_table(result);
@@ -166,12 +236,13 @@
 				var empEmail = $("<td></td>").append(item.email);
 				var empDept = $("<td></td>").append(item.department.name);
 				var btnEdit = $("<button></button>").addClass(
-						"btn btn-primary btn-xs").append("<span></span>")
+						"btn btn-primary btn-xs edit_btn").append("<span></span>")
 						.addClass("glyphicon glyphicon-pencil").append("编辑");
+				btnEdit.attr("edit-id",item.id);
 				var btnDel = $("<button></button>").addClass(
 						"btn btn-danger btn-xs").append("<span></span>")
 						.addClass("glyphicon glyphicon-trash").append("删除");
-
+				btnDel.attr("del-id",item.id);
 				var btnTb = $("<td></td>").append(btnEdit).append(" ").append(
 						btnDel);
 
@@ -193,6 +264,7 @@
 			$("#page_info_area").append("当前第").append(p1).append("页,总共")
 					.append(p2).append("页,总共").append(p3).append("条记录.");
 			totalRecode=result.extend.pageInfo.pages;
+			currentPage=result.extend.pageInfo.pageNum;
 		}
 
 		function build_nav_table(result) {
@@ -255,23 +327,12 @@
 		$("#addModal").click(function() {
 			reset_form("#empAddModal form");
 			//$("#empAddModal form")[0].reset();
-			get_Department();
+			getDepts("#empAddModal select");
 			$("#empAddModal").modal({
 				backdrop : "static"
 			});
 		});
-		function get_Department(){
-			$("#empAddModal select").empty();
-			$.ajax({
-				url:"${APP_PATH}/depts",
-				type:"get",
-				success:function(result){
-					$.each(result.extend.depts,function(){
-						$("#empAddModal select").append($("<option></option>").append(this.name).attr("value",this.id));
-					})
-				}
-			})
-		}
+		
 		
 		function validate_add_form(){
 			var nameVal=$("#personName").val();
@@ -301,7 +362,6 @@
 				data:"personName="+nameVal,
 				type:"POST",
 				success:function(result){
-					console.log(result);
 					if(result.code==100){
 						show_validate_msg("#personName","success","用户名可用");
 						$("#save_person").attr("ajax_va","success");
@@ -357,6 +417,81 @@
 				}
 			});
 		});
+		
+		/************************************************************************************************/
+		$(document).on("click",".edit_btn",function(){
+			//alert("edit");
+			
+			
+			//1、查出部门信息，并显示部门列表
+			getDepts("#empUpdateModal select");
+			//2、查出员工信息，显示员工信息
+			getEmp($(this).attr("edit-id"));
+			
+			//3、把员工的id传递给模态框的更新按钮
+			$("#emp_update_btn").attr("edit-id",$(this).attr("edit-id"));
+			$("#empUpdateModal").modal({
+				backdrop:"static"
+			});
+		});
+		/****************************************************************************************************/
+			//查出所有的部门信息并显示在下拉列表中
+		function getDepts(ele){
+			//清空之前下拉列表的值
+			$(ele).empty();
+			$.ajax({
+				url:"${APP_PATH}/depts",
+				type:"GET",
+				success:function(result){
+					$.each(result.extend.depts,function(){
+						var optionEle = $("<option></option>").append(this.name).attr("value",this.id);
+						optionEle.appendTo(ele);
+					});
+				}
+			});
+			
+		}
+		/*******************************************************************************************************/
+		function getEmp(id){
+			$.ajax({
+				url:"${APP_PATH}/emp/"+id,
+				type:"GET",
+				success:function(result){
+					//console.log(result);
+					var empData = result.extend.emp;
+					$("#empName_update_static").text(empData.name);
+					$("#address_update_input").val(empData.address);
+					$("#email_update_input").val(empData.email);
+					$("#age_update_input").val(empData.age)
+					//console.log($("#empUpdateModal input[name=gender]").val([]));
+					$("#empUpdateModal input[name=gender]").val([empData.gender]);
+					$("#empUpdateModal select").val([empData.jobId]);
+				}
+			});
+		}
+		/********************************************************************************************************/
+		$("#emp_update_btn").click(function(){
+			var email = $("#email_update_input").val();
+			var regEmail = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
+			if(!regEmail.test(email)){
+				show_validate_msg("#email_update_input", "error", "邮箱格式不正确");
+				return false;
+			}else{
+				show_validate_msg("#email_update_input", "success", "");
+			}
+			
+			$.ajax({
+				url:"${APP_PATH}/emp/"+$(this).attr("edit-id"),
+				type:"PUT",
+				data:$("#empUpdateModal form").serialize(),
+				success:function(result){
+					console.log(result);
+					$("#empUpdateModal").modal("hide");
+					to_page(currentPage);
+				}
+			})
+		});
+		
 		
 	</script>
 </body>

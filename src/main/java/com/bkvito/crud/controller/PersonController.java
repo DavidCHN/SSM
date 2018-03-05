@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -86,6 +88,22 @@ public class PersonController {
 		PageInfo<Person> pageInfo = new PageInfo<Person>(persons, 5);
 		model.addAttribute("pageInfo", pageInfo);
 		return "list";
+	}
+	
+	@ResponseBody
+	@RequestMapping(value="/emp/{id}",method=RequestMethod.PUT)
+	public Msg saveEmp(@Valid Person person,HttpServletRequest request){
+		System.out.println(person);
+		personService.updateEmp(person);
+		return Msg.success()	;
+	}
+	
+	@RequestMapping(value="/emp/{id}",method=RequestMethod.GET)
+	@ResponseBody
+	public Msg getEmp(@PathVariable("id")Integer id){
+		
+		Person person = personService.getEmp(id);
+		return Msg.success().add("emp", person);
 	}
 
 }
