@@ -105,5 +105,12 @@ public class PersonController {
 		Person person = personService.getEmp(id);
 		return Msg.success().add("emp", person);
 	}
+	@ResponseBody
+	@RequestMapping(value="/emp/{id}",method=RequestMethod.DELETE)
+	public Msg deletePersonById(@PathVariable("id") Integer id){
+		personService.deleteEmp(id);
+		return Msg.success();
+		
+	}
 
 }

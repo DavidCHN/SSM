@@ -15,6 +15,8 @@
 	src="${APP_PATH}/static/jquery/jquery-3.3.1.min.js"></script>
 <script type="text/javascript"
 	src="${APP_PATH}/static/bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript"
+	src="${APP_PATH}/static/bootstrap/js/bootbox.min.js"></script>
 
 </head>
 <body>
@@ -240,7 +242,7 @@
 						.addClass("glyphicon glyphicon-pencil").append("编辑");
 				btnEdit.attr("edit-id",item.id);
 				var btnDel = $("<button></button>").addClass(
-						"btn btn-danger btn-xs").append("<span></span>")
+						"btn btn-danger btn-xs delete_btn").append("<span></span>")
 						.addClass("glyphicon glyphicon-trash").append("删除");
 				btnDel.attr("del-id",item.id);
 				var btnTb = $("<td></td>").append(btnEdit).append(" ").append(
@@ -490,6 +492,35 @@
 					to_page(currentPage);
 				}
 			})
+		});
+		
+		$(document).on("click",".delete_btn",function(){
+			var empId = $(this).attr("del-id");
+			bootbox.confirm({
+			    message: "确定要删除这条数据吗?",
+			    buttons: {
+			        confirm: {
+			            label: '确定',
+			            className: 'btn-success'
+			        },
+			        cancel: {
+			            label: '取消',
+			            className: 'btn-danger'
+			        }
+			    },
+			    callback: function (result) {
+			        if(result){
+			        	$.ajax({
+							url:"${APP_PATH}/emp/"+empId,
+							type:"DELETE",
+							success:function(result){
+								//回到本页
+								to_page(currentPage);
+							}
+						});
+			        }
+			    }
+			});
 		});
 		
 		

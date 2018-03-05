@@ -43,4 +43,9 @@ public class PersonService {
 		return person;
 	}
 
+	public void deleteEmp(Integer id) {
+		personMapper.deleteByPrimaryKey(id);
+		
+	}
+
 }
