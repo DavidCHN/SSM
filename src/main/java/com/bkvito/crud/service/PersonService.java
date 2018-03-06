@@ -48,4 +48,12 @@ public class PersonService {
 		
 	}
 
+	public void deleteBach(List<Integer> list) {
+		PersonExample personExample=new PersonExample();
+		Criteria criteria=personExample.createCriteria();
+		criteria.andIdIn(list);
+		personMapper.deleteByExample(personExample);
+		
+	}
+
 }

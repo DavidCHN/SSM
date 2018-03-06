@@ -1,5 +1,6 @@
 package com.bkvito.crud.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,9 +107,19 @@ public class PersonController {
 		return Msg.success().add("emp", person);
 	}
 	@ResponseBody
-	@RequestMapping(value="/emp/{id}",method=RequestMethod.DELETE)
-	public Msg deletePersonById(@PathVariable("id") Integer id){
-		personService.deleteEmp(id);
+	@RequestMapping(value="/emp/{ids}",method=RequestMethod.DELETE)
+	public Msg deletePersonById(@PathVariable("ids") String ids){
+		if(ids.contains("-")){
+			List<Integer> list=new ArrayList<>();
+			String[] str_ids=ids.split("-");
+			for(String string:str_ids){
+				list.add(Integer.parseInt(string));
+			}
+			personService.deleteBach(list);
+		}else{
+			personService.deleteEmp(Integer.parseInt(ids));
+		}
+		
 		return Msg.success();
 		
 	}

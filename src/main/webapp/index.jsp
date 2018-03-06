@@ -174,7 +174,7 @@
 		<div class="row">
 			<div class="col-md-2 col-md-offset-10">
 				<button type="button" class="btn btn-success" id="addModal">新增</button>
-				<button type="button" class="btn btn-info">删除</button>
+				<button type="button" class="btn btn-info" id="emp_delete_all_btn">删除</button>
 			</div>
 		</div>
 		<div class="row">
@@ -186,6 +186,9 @@
 			<table class="table table-hover" id="pers_table">
 				<thead>
 					<tr>
+						<th>
+						<input type="checkbox" id="check_all"/>
+						</th>
 						<th>编号</th>
 						<th>姓名</th>
 						<th>年龄</th>
@@ -229,6 +232,7 @@
 			$("#pers_table tbody").empty();
 			var emps = result.extend.pageInfo.list;
 			$.each(emps, function(index, item) {
+				var checkBoxTd =$("<td><input type='checkbox' class='check_item'/></td>");
 				var empID = $("<td></td>").append(item.id);
 				var empName = $("<td></td>").append(item.name);
 				var empAge = $("<td></td>").append(item.age);
@@ -248,7 +252,7 @@
 				var btnTb = $("<td></td>").append(btnEdit).append(" ").append(
 						btnDel);
 
-				$("<tr></tr>").append(empID).append(empName).append(empAge)
+				$("<tr></tr>").append(checkBoxTd).append(empID).append(empName).append(empAge)
 						.append(empAddress).append(empGender).append(empEmail)
 						.append(empDept).append(btnTb).appendTo(
 								"#pers_table tbody");
@@ -521,6 +525,53 @@
 			        }
 			    }
 			});
+		});
+		
+		$("#check_all").click(function(){
+			$(".check_item").prop("checked",$(this).prop("checked"));
+		});
+		
+		
+		$(document).on("click",".check_item",function(){
+			var flag=$(".check_item:checked").length==$(".check_item").length;
+			$("#check_all").prop("checked",flag);
+		});
+		
+		$("#emp_delete_all_btn").click(function(){
+			var empNames = "";
+			var del_idstr = "";
+			$.each($(".check_item:checked"),function(){
+				empNames+=$(this).parents("tr").find("td:eq(2)").text()+",";
+				del_idstr+=$(this).parents("tr").find("td:eq(1)").text()+"-";
+			});
+			empNames=empNames.substring(0,empNames.length-1);
+			del_idstr=del_idstr.substring(0,del_idstr.length-1);
+			bootbox.confirm({
+			    message: "确定要删除"+empNames+"吗?",
+			    buttons: {
+			        confirm: {
+			            label: '确定',
+			            className: 'btn-success'
+			        },
+			        cancel: {
+			            label: '取消',
+			            className: 'btn-danger'
+			        }
+			    },
+			    callback: function (result) {
+			        if(result){
+			        	$.ajax({
+							url:"${APP_PATH}/emp/"+del_idstr,
+							type:"DELETE",
+							success:function(result){
+								$("#check_all").prop("checked",false);
+								to_page(currentPage);
+							}
+						});
+			        }
+			    }
+			});
+			
 		});
 		
 		
